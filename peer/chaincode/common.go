@@ -65,6 +65,26 @@ func getChaincodeDeploymentSpec(spec *pb.ChaincodeSpec, crtPkg bool) (*pb.Chainc
 	return chaincodeDeploymentSpec, nil
 }
 
+// getChaincodeDeploymentSpec get chaincode deployment spec given the chaincode spec
+func getChaincodeDeploymentSpecByCode(spec *pb.ChaincodeSpec, crtPkg bool, path string) (*pb.ChaincodeDeploymentSpec, error) {
+	var codePackageBytes []byte
+	if chaincode.IsDevMode() == false && crtPkg {
+		var err error
+		if err = checkSpec(spec); err != nil {
+			return nil, err
+		}
+
+		// codePackageBytes, err = container.GetChaincodePackageBytes(platformRegistry, spec)
+		codePackageBytes, err = ioutil.ReadFile(path)
+		if err != nil {
+			err = errors.WithMessage(err, "error getting chaincode package bytes")
+			return nil, err
+		}
+	}
+	chaincodeDeploymentSpec := &pb.ChaincodeDeploymentSpec{ChaincodeSpec: spec, CodePackage: codePackageBytes}
+	return chaincodeDeploymentSpec, nil
+}
+
 // getChaincodeSpec get chaincode spec from the cli cmd pramameters
 func getChaincodeSpec(cmd *cobra.Command) (*pb.ChaincodeSpec, error) {
 	spec := &pb.ChaincodeSpec{}
